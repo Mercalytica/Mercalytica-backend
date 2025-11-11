@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from routers.modelRouter import modelRouter
+from routers.modelRouter import modelRouter, reviewRouter
 
 app = FastAPI(title="Gestor de Competencia - Formosa", version="0.1.0")
 
@@ -22,6 +22,7 @@ app.add_middleware(
 )
 
 app.include_router(modelRouter)
+app.include_router(reviewRouter)
 
 if __name__ == "__main__":
      uvicorn.run("main:app", port=5001,reload=True)

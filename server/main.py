@@ -5,6 +5,7 @@ from config.env import EnvConfig
 from services.companies import CompaniesServicer
 from services.products import ProductsServicer
 from services.orders import OrdersServicer 
+from services.reviews import ReviewsServicer
 import logging
 
 logging.getLogger("asyncio").setLevel(logging.WARNING)
@@ -22,6 +23,7 @@ users_service = UsersServicer(connector)
 companies_service = CompaniesServicer(connector)
 products_service = ProductsServicer(connector)
 orders_service = OrdersServicer(connector)
+reviews_service = ReviewsServicer(connector)
 
 # ? ----------------- Herramientas relacionadas con usuarios 
 
@@ -416,6 +418,19 @@ async def top_productos_mas_vendidos(limit: int = 10):
     except Exception as error:
         print(f"Error en la herramienta: top_productos_mas_vendidos: {error}")
         return {"msg": "Error inesperado, por favor intente de nuevo"}
+
+@mcp.tool("analizar_reseñas_producto")
+async def analizar_reseñas_producto(brand: str, product_name: str):
+    """Devuelve resumen y reseñas individuales de un producto específico."""
+    try:
+        result = await reviews_service.analizar_impacto(brand, product_name)
+        if not result["reseñas_mostradas"]:
+            return {"mensaje": f"No se encontraron reseñas para {product_name} de {brand}"}
+        return result
+    except Exception as error:
+        print(f"Error en herramienta analizar_reseñas_producto: {error}")
+        return {"msg": "Error inesperado, por favor intente de nuevo"}
+
 
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")

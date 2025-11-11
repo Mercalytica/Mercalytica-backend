@@ -2,7 +2,9 @@ from services.modelService import ModelService
 from validations.chatData import ChatData, ChatMessage
 from services.chatBotService import ChatBotService
 from fastapi import HTTPException
-from typing import List, Tuple, Union,Dict,Any
+from services.reviewsService import reviewService
+from typing import List, Tuple, Union, Dict,Any
+import re
 
 
 class ModelController:
@@ -22,11 +24,43 @@ class ModelController:
             # 1. Guardar mensaje del usuario
             self.collectionChat.save_chat(chat_data)
             history_messages: List[ChatMessage] = self.collectionChat.get_messages_by_session_id(session_id)
-            
-            # 2. Cargar el modelo si es necesario
+            # 2 Detectar si el mensaje es un análisis de impacto
+            user_message = chat_data.messages[0].message.lower().strip()
+            patrones = [
+                r"impacto del\s+([\w\s]+)\s+de\s+([\w\s]+)$",
+                r"opiniones sobre\s+([\w\s]+)\s+de\s+([\w\s]+)$",
+                r"reporte (?:del|de)\s+([\w\s]+)\s+de\s+([\w\s]+)$",
+            ]
+
+            producto = None
+            empresa = None
+            for patron in patrones:
+                match = re.search(patron, user_message)
+                if match:
+                    producto = match.group(1).strip()
+                    empresa = match.group(2).strip()
+                    break
+
+            #  Si detecta análisis → usar reviewService y devolver resultados
+            if producto and empresa:
+                resultado = await reviewService.analizar_impacto(empresa, producto)
+                if not resultado.get("reseñas_mostradas"):
+                    return f"No se encontraron reseñas para {producto} de {empresa}", None
+
+                resumen = resultado["resumen"]
+                texto = (
+                    f"📊 **Análisis de impacto de {producto} ({empresa})**\n\n"
+                    f"- Opiniones positivas: {resumen['positive']}%\n"
+                    f"- Opiniones neutras: {resumen['neutral']}%\n"
+                    f"- Opiniones negativas: {resumen['negative']}%\n"
+                    f"- Total de reseñas: {resumen['total_reviews']}\n\n"
+                    f"**Conclusión:** {resultado['conclusion']}"
+                )
+                return texto, None
+
+            #  Si no es análisis → usar flujo normal del modelo IA
             if self.model_service.model is None:
                 await self.model_service.load_model()
-            
             # 3. Llamar al servicio y desempaquetar la tupla
             response_content, pdf_filename = await self.model_service.generate_response_with_history(history_messages)
             
