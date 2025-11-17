@@ -10,7 +10,7 @@ class DatabaseConfig:
      def __init__(self):
           env = EnvConfig()
           mongo_url = env.get("MONGO_URL", "mongodb://localhost:27017")
-          db_name = env.get("DB_NAME", "mercalytica_db")
+          db_name = env.get("DB_NAME", "competition_manager")
           
           try:
                self.client = MongoClient(mongo_url, serverSelectionTimeoutMS=3000)
