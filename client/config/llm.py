@@ -1,13 +1,10 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import create_agent
-from dotenv import load_dotenv
-import os
-load_dotenv()
 from config.env import EnvConfig
 from api.client import client
 
 env = EnvConfig()
-gemini_api_key = os.getenv("GEMINI_API_KEY")
+gemini_api_key = env.get("GEMINI_API_KEY")
 
 async def getModel():
     geminiModel = ChatGoogleGenerativeAI(

@@ -1,27 +1,21 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from routers.modelRouter import modelRouter
+from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
+
 
 app = FastAPI(title="Gestor de Competencia - Formosa", version="0.1.0")
 
-# 🌐 Configuración de CORS
-origins = [
-    "http://localhost:5173",   # frontend local (Vite)
-    "http://127.0.0.1:5173",
-    # podés agregar más dominios si desplegás el frontend
-    # "https://mercalytica.vercel.app",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,      # dominios permitidos
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],        # permite todos los métodos (GET, POST, etc.)
-    allow_headers=["*"],        # permite todos los encabezados
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(modelRouter)
 
 if __name__ == "__main__":
-     uvicorn.run("main:app", port=5001,reload=True)
+     uvicorn.run("main:app", host="0.0.0.0",port=5000,reload=True)

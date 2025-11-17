@@ -5,23 +5,22 @@ from config.env import EnvConfig
 from services.companies import CompaniesServicer
 from services.products import ProductsServicer
 from services.orders import OrdersServicer 
+from services.web_search import WebSearchService
 import logging
 
 logging.getLogger("asyncio").setLevel(logging.WARNING)
 
 
-# Inicialización del Framework y la Conexión a la Base de Datos
 mcp = FastMCP("chatbot-server")
 
-# Configuración de la conexión a Mongo (Asumiendo que EnvConfig maneja la URL)
 urlMongo = EnvConfig().get("MONGO_URL")
 connector = MongoConnector(urlMongo, "competition_manager")
 
-# Inicialización de los Servidores de Datos
 users_service = UsersServicer(connector)
 companies_service = CompaniesServicer(connector)
 products_service = ProductsServicer(connector)
 orders_service = OrdersServicer(connector)
+web_search_service = WebSearchService()
 
 # ? ----------------- Herramientas relacionadas con usuarios 
 
@@ -416,6 +415,81 @@ async def top_productos_mas_vendidos(limit: int = 10):
     except Exception as error:
         print(f"Error en la herramienta: top_productos_mas_vendidos: {error}")
         return {"msg": "Error inesperado, por favor intente de nuevo"}
+
+# ? --------- Herramientas relacionadas con búsqueda web de reseñas y opiniones
+
+@mcp.tool("buscar_resenas_producto")
+async def buscar_resenas_producto(nombre_producto: str, empresa: str = "", limite: int = 20):
+    """
+    Realiza una búsqueda web para encontrar reseñas y opiniones sobre un producto específico
+    en redes sociales y sitios de reseñas. Devuelve un análisis de los resultados encontrados.
+    """
+    try:
+        resultado = await web_search_service.search_product_reviews(
+            product_name=nombre_producto,
+            company_name=empresa if empresa else None,
+            limit=limite
+        )
+        return resultado
+    except Exception as error:
+        print(f"Error en la herramienta: buscar_resenas_producto: {error}")
+        return {"msg": "Error inesperado en búsqueda web", "error": str(error)}
+
+@mcp.tool("buscar_menciones_redes_sociales")
+async def buscar_menciones_redes_sociales(nombre_producto: str, plataforma: str = "", limite: int = 15):
+    """
+    Busca menciones específicas de un producto en redes sociales.
+    Plataformas disponibles: twitter, instagram, facebook, reddit, tiktok, youtube, linkedin.
+    """
+    try:
+        plataforma_norm = plataforma.lower() if plataforma else None
+        resultado = await web_search_service.search_social_media_mentions(
+            product_name=nombre_producto,
+            platform=plataforma_norm,
+            limit=limite
+        )
+        return resultado
+    except Exception as error:
+        print(f"Error en la herramienta: buscar_menciones_redes_sociales: {error}")
+        return {"msg": "Error inesperado en búsqueda de redes sociales", "error": str(error)}
+
+@mcp.tool("analizar_sentimiento_resenas")
+async def analizar_sentimiento_resenas(resenas: list[str]):
+    """
+    Analiza el sentimiento general de un conjunto de reseñas o opiniones.
+    Detecta si son positivas, negativas o mixtas, y proporciona estadísticas.
+    
+    Args:
+        resenas: Lista de textos de reseñas a analizar
+    """
+    try:
+        if not isinstance(resenas, list):
+            return {"error": "Las reseñas deben ser una lista de textos"}
+        
+        resultado = await web_search_service.analyze_sentiment_from_reviews(resenas)
+        return resultado
+    except Exception as error:
+        print(f"Error en la herramienta: analizar_sentimiento_resenas: {error}")
+        return {"msg": "Error inesperado en análisis de sentimiento", "error": str(error)}
+
+@mcp.tool("extraer_caracteristicas_resenas")
+async def extraer_caracteristicas_resenas(resenas: list[str]):
+    """
+    Extrae las características clave mencionadas en las reseñas (tanto positivas como negativas).
+    Identifica qué aspectos del producto son mejor y peor valorados.
+    
+    Args:
+        resenas: Lista de textos de reseñas a analizar
+    """
+    try:
+        if not isinstance(resenas, list):
+            return {"error": "Las reseñas deben ser una lista de textos"}
+        
+        resultado = await web_search_service.extract_key_features(resenas)
+        return resultado
+    except Exception as error:
+        print(f"Error en la herramienta: extraer_caracteristicas_resenas: {error}")
+        return {"msg": "Error inesperado en extracción de características", "error": str(error)}
 
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")
