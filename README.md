@@ -14,7 +14,7 @@ El sistema implementa el protocolo **Memory Contextual Protocol (MCP)**, el cual
 
 ## Aplicación
 
-## **Nombre de la App:** (por definir)
+## **Nombre de la App:** : Mercodex
 
 ## 🧩 Problemática
 
@@ -25,9 +25,8 @@ Este estudio tiene como objetivo proporcionar información estratégica que faci
 
 ## Demo
 
-_(Incluir GIF aquí una vez disponible)_
-
----
+<video controls src="demo1.mp4" title="Title"></video>
+<video controls src="pdf2.mp4" title="Title"></video>
 
 ## Arquitectura General
 
