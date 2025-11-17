@@ -25,8 +25,13 @@ Este estudio tiene como objetivo proporcionar información estratégica que faci
 
 ## Demo
 
-<video controls src="demo1.mp4" title="Title"></video>
-<video controls src="pdf2.mp4" title="Title"></video>
+## 📹 Demo 1
+
+https://raw.githubusercontent.com/Mercalytica/Mercalytica-backend/main/Demos/demo1.mp4
+
+## 📹 Demo PDF 2
+
+https://raw.githubusercontent.com/Mercalytica/Mercalytica-backend/main/Demos/pdf2.mp4
 
 ## Arquitectura General
 
